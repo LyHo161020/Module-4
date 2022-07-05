@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="en">
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Document</title>
+    <th:block th:replace="/layout/head :: head">
+
+    </th:block>
+
+</head>
+
+<body>
+<div class="container">
+
+    <div class="row mt-3">
+        <div class="col-xl-7">
+            <h1>Customer Infomation</h1>
+        </div>
+        <div class="col-xl-5 mt-2">
+            <button id="createCustomer" class="btn btn-outline-primary float-end">
+                Create New Customer
+            </button>
+        </div>
+    </div>
+
+    <table class="table table-hover" id="tbCustomer">
+        <thead>
+        <tr style="background-color: #4caf50">
+            <th scope="col">#</th>
+            <th scope="col">FullName</th>
+            <th scope="col">Email</th>
+            <th scope="col">Phone</th>
+            <th scope="col">Address</th>
+            <th scope="col">Balance</th>
+            <th scope="col" class="text-center">Action</th>
+        </tr>
+        </thead>
+        <tbody>
+        </tbody>
+    </table>
+</div>
+
+<th:block th:replace="/customer/modal_create :: modale-create">
+</th:block>
+
+<th:block th:replace="/customer/modal_update :: modale-update">
+</th:block>
+
+<th:block th:replace="/customer/modal_deposit :: modale-deposit">
+</th:block>
+
+<th:block th:replace="/customer/modal_withdraw :: modale-withdraw">
+</th:block>
+
+<th:block th:replace="/customer/modal_transfer :: modale-transfer">
+</th:block>
+
+<th:block th:replace="/layout/script :: script">
+
+</th:block>
+
+
+
+<script>
+    let customers = [];
+    let customer = new Customer();
+    let deposit = new Deposit();
+    let withdraw = new Withdraw();
+    let transfer = new Transfer();
+
+    function updateSender(id, transferAmount) {
+        return findCustomerById(id).then(function () {
+            console.log(customer.balance);
+            customer.balance = Number(customer.balance) - Number(transferAmount * 1.1);
+
+            return $.ajax({
+                type: "PUT",
+                url: "http://localhost:3000/customer/" + customer.id,
+                data: customer
+            }).done((data) => {
+                console.log(data.balance);
+                let str = `  <tr id = "tr_${data.id}">
+                          <th scope="row">${data.id}</th>
+                          <td>${data.fullName}</td>
+                          <td>${data.email}</td>
+                          <td>${data.phone}</td>
+                          <td>${data.address}</td>
+                          <td>${data.balance}</td>
+                          <td class="text-center">
+                              <button type="button" class="btn btn-outline-secondary edit" data-id = "${data.id}"> <i class="fas fa-pen-square"></i> </button>
+                              <button data-id = "${data.id}" type="button" class="btn btn-outline-success deposit" id="btnDeposit(${data.id})"> <i class="fas fa-plus"></i> </button>
+                              <button data-id = "${data.id}" type="button" class="btn btn-outline-warning withdraw" id="btnWithdraw(${data.id})"> <i class="fas fa-minus"></i> </button>
+                              <button data-id = "${data.id}" type="button" class="btn btn-outline-primary transfer" id="btnTransfer(${data.id})"> <i class="fas fa-exchange-alt"></i> </button>
+                              <button data-id = "${data.id}" type="button" class="btn btn-outline-danger block" id="btnBlock(${data.id})"> <i class="fas fa-ban"></i> </button>
+                          </td>
+             </tr>`;
+                let currentRow = $("#tr_" + data.id);
+                currentRow.replaceWith(str);
+
+                handleEditBtn();
+            }).fail((data) => {
+                alert("Update Sender Name Fail!");
+            })
+        })
+    }
+
+    function updateRep(id, transferAmount) {
+        return findCustomerById(id).then(function () {
+            customer.balance = Number(customer.balance) + Number(transferAmount);
+
+            return  $.ajax({
+                type: "PUT",
+                url: "http://localhost:3000/customer/" + customer.id,
+                data: customer
+            }).done((data) => {
+                console.log(data.balance);
+                let str = `  <tr id = "tr_${data.id}">
+                          <th scope="row">${data.id}</th>
+                          <td>${data.fullName}</td>
+                          <td>${data.email}</td>
+                          <td>${data.phone}</td>
+                          <td>${data.address}</td>
+                          <td>${data.balance}</td>
+                          <td class="text-center">
+                              <button type="button" class="btn btn-outline-secondary edit" data-id = "${data.id}"> <i class="fas fa-pen-square"></i> </button>
+                              <button data-id = "${data.id}" type="button" class="btn btn-outline-success deposit" id="btnDeposit(${data.id})"> <i class="fas fa-plus"></i> </button>
+                              <button data-id = "${data.id}" type="button" class="btn btn-outline-warning withdraw" id="btnWithdraw(${data.id})"> <i class="fas fa-minus"></i> </button>
+                              <button data-id = "${data.id}" type="button" class="btn btn-outline-primary transfer" id="btnTransfer(${data.id})"> <i class="fas fa-exchange-alt"></i> </button>
+                              <button data-id = "${data.id}" type="button" class="btn btn-outline-danger block" id="btnBlock(${data.id})"> <i class="fas fa-ban"></i> </button>
+                          </td>
+             </tr>`;
+                let currentRow = $("#tr_" + data.id);
+                currentRow.replaceWith(str);
+                $("#repName").html("");
+                handleEditBtn();
+            }).fail((data) => {
+                alert("Update Rep Name Fail!");
+            })
+        })
+    }
+
+    $("#btnTransfer").on("click", function () {
+        let id = $("#senderId").val();
+        console.log(id);
+        let transferAmount = $("#transferAmount").val();
+        let repId = $("#repName").val();
+        let hasError = false;
+
+        if (Number(transferAmount) == NaN) {
+            alert("Vui lòng nhập đúng số tiền chuyển khoản!");
+            hasError = true;
+        } else {
+
+            if (transferAmount < 50) {
+                alert("Số tiền chuyển khoản phải lớn hơn 50!");
+                hasError = true;
+            } else if (transferAmount * 1.1 > customer.balance) {
+                alert("Số tiền chuyển khoản vượt quá số dư của bạn!");
+                hasError = true;
+            } else if (transferAmount > 1000000000) {
+                alert("Số tiền chuyển khoản tối đa mỗi lần 1.000.000.000đ");
+                hasError = true;
+            }
+
+        }
+
+
+
+
+        updateSender(id, transferAmount).then(function(){
+            updateRep(repId, transferAmount);
+        })
+
+
+        delete transfer.id;
+        transfer.createAt = getDatetime();
+        transfer.createBy = 1;
+        transfer.isDeleted = 0;
+        transfer.updateAt = getDatetime();
+        transfer.updateBy = 1;
+        transfer.fees = 10;
+        transfer.feesAmount = transferAmount * 0.1;
+        transfer.transactionAmount = transferAmount * 1.1;
+        transfer.transferAmount = transferAmount;
+        transfer.senderId = id;
+        transfer.repId = Number(repId);
+
+        $.ajax({
+            type: "POST",
+            url: "http://localhost:3000/transfer",
+            data: transfer
+        }).done((data) => {
+            // console.log(data.balance);
+        }).fail((err) => {
+            alert("Create Transfer Fail!");
+        })
+
+        $("#mdTransfer").modal("hide");
+
+    })
+
+    $("#btnWithdraw").on("click", function () {
+        let id = $('#customerIdWithdraw').val();
+        let hasError = false;
+        findCustomerById(id).then(function () {
+            let transactionAmount = $('#transactionAmountWithdraw').val();
+
+
+            if (Number(transactionAmount) == NaN) {
+                alert("Vui lòng nhập đúng số tiền rút!");
+                hasError = true;
+            } else {
+
+                if (transactionAmount < 50) {
+                    alert("Số tiền rút phải lớn hơn 50!");
+                    hasError = true;
+                } else if (transactionAmount > customer.balance) {
+                    alert("Số tiền bạn muốn rút vượt quá số dư của bạn!");
+                    hasError = true;
+                } else if (transactionAmount > 1000000000) {
+                    alert("Số tiền rút tối đa mỗi lần 1.000.000.000đ");
+                    hasError = true;
+                }
+
+            }
+
+            if (!hasError) {
+                customer.balance = customer.balance - transactionAmount;
+
+                delete withdraw.id;
+                withdraw.customerId = id;
+                withdraw.createAt = getDatetime();
+                withdraw.createBy = 1;
+                withdraw.updateAt = getDatetime();
+                withdraw.updateBy = 1;
+                withdraw.isDeleted = 0;
+                withdraw.transactionAmount = transactionAmount;
+
+                $.ajax({
+                    type: "POST",
+                    url: "http://localhost:3000/withdraw",
+                    data: withdraw
+                })
+
+                $.ajax({
+                    type: "PUT",
+                    url: "http://localhost:3000/customer/" + customer.id,
+                    data: customer
+                }).done((data) => {
+                    let str = `  <tr id = "tr_${data.id}">
+                          <th scope="row">${data.id}</th>
+                          <td>${data.fullName}</td>
+                          <td>${data.email}</td>
+                          <td>${data.phone}</td>
+                          <td>${data.address}</td>
+                          <td>${data.balance}</td>
+                          <td class="text-center">
+                              <button type="button" class="btn btn-outline-secondary edit" data-id = "${data.id}"> <i class="fas fa-pen-square"></i> </button>
+                              <button data-id = "${data.id}" type="button" class="btn btn-outline-success deposit" id="btnDeposit(${data.id})"> <i class="fas fa-plus"></i> </button>
+                              <button data-id = "${data.id}" type="button" class="btn btn-outline-warning withdraw" id="btnWithdraw(${data.id})"> <i class="fas fa-minus"></i> </button>
+                              <button data-id = "${data.id}" type="button" class="btn btn-outline-primary transfer" id="btnTransfer(${data.id})"> <i class="fas fa-exchange-alt"></i> </button>
+                              <button data-id = "${data.id}" type="button" class="btn btn-outline-danger block" id="btnBlock(${data.id})"> <i class="fas fa-ban"></i> </button>
+                          </td>
+             </tr>`;
+                    let currentRow = $("#tr_" + data.id);
+                    currentRow.replaceWith(str);
+
+                    handleEditBtn();
+                    $("#mdWithdraw").modal("hide");
+                })
+            }
+        })
+    })
+
+    $("#btnDeposit").on("click", function () {
+        let id = $('#customerIdDepositUp').val();
+        let hasError = false;
+        findCustomerById(id).then(function () {
+            let transactionAmount = $('#transactionAmountUp').val();
+
+            if (Number(transactionAmount) == NaN) {
+                alert("Vui lòng nhập đúng số tiền muốn nạp!");
+                hasError = true;
+            } else {
+
+                if (transactionAmount < 50) {
+                    alert("Số tiền nạp phải lớn hơn 50!");
+                    hasError = true;
+                } else if (transactionAmount > 1000000000) {
+                    alert("Số tiền nạp tối đa mỗi lần 1.000.000.000đ");
+                    hasError = true;
+                }
+            }
+
+
+
+            if (!hasError) {
+                customer.balance = Number(customer.balance) + Number(transactionAmount);
+
+                delete deposit.id;
+                deposit.customerId = id;
+                deposit.createAt = getDatetime();
+                deposit.createBy = 1;
+                deposit.updateAt = getDatetime();
+                deposit.updateBy = 1;
+                deposit.transactionAmount = transactionAmount;
+                deposit.isDeleted = 0;
+
+                $.ajax({
+                    type: "POST",
+                    url: "http://localhost:3000/deposit",
+                    data: deposit
+                })
+                    .done((data) => {
+
+                    })
+                    .fail((err) => {
+                        alert("Fail!")
+                    })
+
+
+
+                $.ajax({
+                    type: "PUT",
+                    url: "http://localhost:3000/customer/" + customer.id,
+                    data: customer
+                }).done((data) => {
+                    let str = `  <tr id = "tr_${data.id}">
+                          <th scope="row">${data.id}</th>
+                          <td>${data.fullName}</td>
+                          <td>${data.email}</td>
+                          <td>${data.phone}</td>
+                          <td>${data.address}</td>
+                          <td>${data.balance}</td>
+                          <td class="text-center">
+                              <button type="button" class="btn btn-outline-secondary edit" data-id = "${data.id}"> <i class="fas fa-pen-square"></i> </button>
+                              <button data-id = "${data.id}" type="button" class="btn btn-outline-success deposit" id="btnDeposit(${data.id})"> <i class="fas fa-plus"></i> </button>
+                              <button data-id = "${data.id}" type="button" class="btn btn-outline-warning withdraw" id="btnWithdraw(${data.id})"> <i class="fas fa-minus"></i> </button>
+                              <button data-id = "${data.id}" type="button" class="btn btn-outline-primary transfer" id="btnTransfer(${data.id})"> <i class="fas fa-exchange-alt"></i> </button>
+                              <button data-id = "${data.id}" type="button" class="btn btn-outline-danger block" id="btnBlock(${data.id})"> <i class="fas fa-ban"></i> </button>
+                          </td>
+             </tr>`;
+                    let currentRow = $("#tr_" + data.id);
+                    currentRow.replaceWith(str);
+
+                    handleEditBtn();
+                    $("#mdDeposit").modal("hide");
+                })
+            }
+        })
+    })
+
+    $("#btnEdit").on("click", function () {
+        let fullName = $('#fullNameUp').val();
+        let email = $('#emailUp').val();
+        let phone = $('#phoneUp').val();
+        let address = $('#addressUp').val();
+
+        customer.fullName = fullName;
+        customer.email = email;
+        customer.phone = phone;
+        customer.address = address;
+
+        $.ajax({
+            type: "PUT",
+            url: "http://localhost:3000/customer/" + customer.id,
+            data: customer
+        }).done((data) => {
+            let str = `  <tr id = "tr_${data.id}">
+                                  <th scope="row">${data.id}</th>
+                                  <td>${data.fullName}</td>
+                                  <td>${data.email}</td>
+                                  <td>${data.phone}</td>
+                                  <td>${data.address}</td>
+                                  <td>0</td>
+                                  <td class="text-center">
+                                      <button type="button" class="btn btn-outline-secondary edit" data-id = "${data.id}"> <i class="fas fa-pen-square"></i> </button>
+                                      <button data-id = "${data.id}" type="button" class="btn btn-outline-success deposit" id="btnDeposit(${data.id})"> <i class="fas fa-plus"></i> </button>
+                                      <button data-id = "${data.id}" type="button" class="btn btn-outline-warning withdraw" id="btnWithdraw(${data.id})"> <i class="fas fa-minus"></i> </button>
+                                      <button data-id = "${data.id}" type="button" class="btn btn-outline-primary transfer" id="btnTransfer(${data.id})"> <i class="fas fa-exchange-alt"></i> </button>
+                                      <button data-id = "${data.id}" type="button" class="btn btn-outline-danger block" id="btnBlock(${data.id})"> <i class="fas fa-ban"></i> </button>
+                                  </td>
+                     </tr>`;
+            let currentRow = $("#tr_" + data.id);
+            currentRow.replaceWith(str);
+
+            handleEditBtn();
+        }).fail((err) => {
+            alert("update fail");
+        })
+
+        $("#mdEdit").modal("hide");
+    })
+
+    function doCreate() {
+        let fullName = $('#fullName').val();
+        let email = $('#email').val();
+        let phone = $('#phone').val();
+        let address = $('#address').val();
+
+        delete customer.id;
+        customer.fullName = fullName;
+        customer.email = email;
+        customer.phone = phone;
+        customer.address = address;
+        customer.balance = 0;
+        customer.isDeleted = 0;
+        $.ajax({
+            header: {
+              "accept": "application/json",
+              "content-type": "application/json"
+            },
+            type: "POST",
+                url: "http://localhost:8080/api/customers/create",
+            data: JSON.stringify(customer)
+        }).done((data) => {
+
+            let str = `  <tr id = "tr_${data.id}">
+                                <th scope="row">${data.id}</th>
+                                <td>${data.fullName}</td>
+                                <td>${data.email}</td>
+                                <td>${data.phone}</td>
+                                <td>${data.address}</td>
+                                <td>${data.balance}</td>
+                                <td class="text-center">
+                                    <button type="button" class="btn btn-outline-secondary edit" data-id = "${data.id}"> <i class="fas fa-pen-square"></i> </button>
+                                    <button data-id = "${data.id}" type="button" class="btn btn-outline-success deposit" id="btnDeposit(${data.id})"> <i class="fas fa-plus"></i> </button>
+                                    <button data-id = "${data.id}" type="button" class="btn btn-outline-warning withdraw" id="btnWithdraw(${data.id})"> <i class="fas fa-minus"></i> </button>
+                                    <button data-id = "${data.id}" type="button" class="btn btn-outline-primary transfer" id="btnTransfer(${data.id})"> <i class="fas fa-exchange-alt"></i> </button>
+                                    <button data-id = "${data.id}" type="button" class="btn btn-outline-danger block" id="btnBlock(${data.id})"> <i class="fas fa-ban"></i> </button>
+                                </td>
+                            </tr>`;
+
+            $('#tbCustomer tbody').prepend(str);
+            handleEditBtn();
+
+        })
+
+        $("#frmCreate")[0].reset();
+    }
+
+    $('#btnCreate').on("click", function () {
+        $("#frmCreate").submit();
+    })
+
+    function loadCustomer() {
+        $.ajax({
+            type: "GET",
+            url: "http://localhost:3000/customer?isDeleted=0"
+        }).done((data) => {
+            $.each(data, (i, item) => {
+                id = item.id;
+                let str = `  <tr id = "tr_${item.id}">
+                                <th scope="row">${item.id}</th>
+                                <td>${item.fullName}</td>
+                                <td>${item.email}</td>
+                                <td>${item.phone}</td>
+                                <td>${item.address}</td>
+                                <td>${item.balance}</td>
+                                <td class="text-center">
+                                    <button type="button" class="btn btn-outline-secondary edit" data-id = "${item.id}"> <i class="fas fa-pen-square"></i> </button>
+                                    <button data-id = "${item.id}" type="button" class="btn btn-outline-success deposit" id="btnDeposit${item.id}"> <i class="fas fa-plus"></i> </button>
+                                    <button data-id = "${item.id}" type="button" class="btn btn-outline-warning withdraw" id="btnWithdraw${item.id}"> <i class="fas fa-minus"></i> </button>
+                                    <button data-id = "${item.id}"type="button" class="btn btn-outline-primary transfer" id="btnTransfer${item.id}"> <i class="fas fa-exchange-alt"></i> </button>
+                                    <button data-id = "${item.id}"type="button" class="btn btn-outline-danger block" id="btnBlock${item.id}"> <i class="fas fa-ban"></i> </button>
+                                </td>
+                            </tr>`;
+                $('#tbCustomer tbody').prepend(str);
+            });
+            handleEditBtn();
+        })
+
+
+    }
+
+
+    function handleEditBtn() {
+        $('.edit').click(function () {
+
+            let id = $(this).data("id");
+            findCustomerById(id).then(function () {
+                $("#fullNameUp").val(customer.fullName);
+                $("#emailUp").val(customer.email);
+                $("#phoneUp").val(customer.phone);
+                $("#addressUp").val(customer.address);
+                $("#mdEdit").modal("show");
+            });
+        })
+
+        $(".deposit").on("click", function () {
+            let id = $(this).data("id");
+            findCustomerById(id).then(function () {
+                $("#customerIdDepositUp").val(customer.id);
+                $("#fullNameDepositUp").val(customer.fullName);
+                $("#balanceDepositUp").val(customer.balance);
+                $("#mdDeposit").modal("show");
+            });
+        })
+
+        $(".withdraw").click(function () {
+            let id = $(this).data("id");
+            findCustomerById(id).then(function () {
+                $("#customerIdWithdraw").val(customer.id);
+                $("#fullNameWithdraw").val(customer.fullName);
+                $("#balanceWithdraw").val(customer.balance);
+                $("#mdWithdraw").modal("show");
+            });
+        })
+
+        $(".transfer").click(function () {
+            let id = $(this).data("id");
+            findCustomerById(id).then(function () {
+                $("#senderId").val(customer.id);
+                $("#senderName").val(customer.fullName);
+                $("#senderEmail").val(customer.email);
+                $("#senderBalance").val(customer.balance);
+                $("#mdTransfer").modal("show");
+                showRepName(id);
+                calTransactionAmount();
+            });
+        })
+    }
+
+    $("#createCustomer").click(function () {
+        $("#mdCreate").modal("show")
+    })
+
+    function showRepName(id) {
+        console.log("showRepName");
+        $.ajax({
+            type: "GET",
+            url: "http://localhost:3000/customer?isDeleted=0"
+        }).done((data) => {
+            $.each(data, (i, item) => {
+                let str = `<option value="${item.id}" ${(item.id == id) ? "disabled" : ""} >(${item.id}) ${item.fullName}</option>`;
+                $("#repName").append(str);
+            })
+        })
+    }
+
+
+
+    function findCustomerById(id) {
+        return $.ajax({
+            type: "GET",
+            url: "http://localhost:3000/customer/" + id,
+            data: customer
+        }).done((data) => {
+            customer = data;
+        }).fail((err) => {
+            alert("Id not found!")
+        })
+    }
+
+    $("#mdTransfer").on("hidden.bs.modal", function () {
+        $("#frmTransfer")[0].reset();
+        $("#repName").html("");
+    })
+
+    $("#mdDeposit").on("hidden.bs.modal", function () {
+        $("#frmDeposit")[0].reset();
+    })
+
+    $("#mdWithdraw").on("hidden.bs.modal", function () {
+        $("#frmWithdraw")[0].reset();
+    })
+
+    $("#mdCreate").on("hidden.bs.modal", function () {
+        $("#frmCreate")[0].reset();
+        $("#mdCreate .modal-alert-danger").attr("style", "diplay:none");
+    })
+
+
+    function getDatetime() {
+        let today = new Date();
+        let date = today.getFullYear() + "-" + (today.getMonth() + 1) + "-" + today.getDate();
+        return date;
+    }
+
+    function calTransactionAmount() {
+        $("#transferAmount").on("input", function () {
+            let transactionAmount = $("#transferAmount").val();
+            $("#transactionAmountTransfer").val(Math.ceil(transactionAmount * 1.1));
+        })
+    }
+
+    $('#frmCreate').validate({
+        rules: {
+            fullName: {
+                required: true,
+                minlength: 3,
+                maxlength: 50
+            },
+            email: {
+                required: true,
+                email: true,
+                minlength: 10,
+                maxlength: 50
+            },
+            address: {
+                required: false,
+                minlength: 5,
+                maxlength: 50
+            }
+        },
+        messages: {
+            fullName: {
+                required: "Vui lòng nhập tên đầy đủ",
+                minlength: $.validator.format("Họ tên tối thiểu {0} ký tự"),
+                maxlength: $.validator.format("Họ tên tối đa {0} ký tự")
+            },
+            email: {
+                required: "Vui lòng nhập email đầy đủ",
+                email: "Vui lòng nhập đúng định dạng email",
+                minlength: $.validator.format("Email tối thiểu {0} ký tự"),
+                maxlength: $.validator.format("Email tối đa {0} ký tự")
+            },
+            address: {
+                minlength: $.validator.format("Địa chỉ tối thiểu {0} ký tự"),
+                maxlength: $.validator.format("Địa chỉ tối đa {0} ký tự")
+            }
+        },
+        errorElement: 'label',
+        errorLabelContainer: '.modal-alert-danger',
+        submitHandler: function () {
+            doCreate();
+        }
+    });
+
+    loadCustomer();
+</script>
+</body>
+
+</html>

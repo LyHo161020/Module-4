@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<th:block th:fragment="modal-deposit">
+    <div id="mdDeposit" class="modal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Deposit</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="frmDeposit">
+                        <div class="row">
+                            <div class="mb-3 col-xl-6">
+                                <label for="customerIdDepositUp" class="form-label">Customer Id</label>
+                                <input type="number" class="form-control" id="customerIdDepositUp" disabled placeholder="ID">
+                            </div>
+                            <div class="mb-3 col-xl-6">
+                                <label for="fullNameDepositUp" class="form-label">FullName</label>
+                                <input type="text" class="form-control" id="fullNameDepositUp" placeholder="Full Name" disabled>
+                            </div>
+
+                        </div>
+
+                        <div class="row">
+                            <div class="mb-3 col-xl-6">
+                                <label for="balanceDepositUp" class="form-label">Current balance ($)</label>
+                                <input type="number" class="form-control" id="balanceDepositUp" placeholder="Balance" disabled>
+                            </div>
+                            <div class="mb-3 col-xl-6">
+                                <label for="transactionAmountUp" class="form-label">Transaction Amount ($)</label>
+                                <input type="number" class="form-control" id="transactionAmountUp" placeholder="Transaction Amount">
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-outline-success" id="btnDeposit">Deposit</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</th:block>

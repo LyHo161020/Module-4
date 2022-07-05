@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<th:block th:fragment="modal-transfer">
+    <div id="mdTransfer" class="modal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Transfer</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="frmTransfer">
+                        <div class="row">
+                            <div class="mb-3 col-xl-3">
+                                <label for="senderId" class="form-label">Sender Id</label>
+                                <input type="number" class="form-control" id="senderId" disabled placeholder="Sender Id">
+                            </div>
+                            <div class="mb-3 col-xl-3">
+                                <label for="senderName" class="form-label">Sender Name</label>
+                                <input type="text" class="form-control" id="senderName" placeholder="Sender Name" disabled>
+                            </div>
+                            <div class="mb-3 col-xl-3">
+                                <label for="senderEmail" class="form-label">Email</label>
+                                <input type="email" class="form-control" id="senderEmail" disabled placeholder="Email">
+                            </div>
+                            <div class="mb-3 col-xl-3">
+                                <label for="senderBalance" class="form-label">Sender Balance</label>
+                                <input type="text" class="form-control" id="senderBalance" placeholder="Sender Balance" disabled>
+                            </div>
+
+                        </div>
+
+                        <div class="row">
+                            <div class="mb-3 col-xl-3">
+                                <label for="repName" class="form-label">Repcipient Name</label>
+                                <select name="repName" id="repName" aria-placeholder="Repcipient Name" class="form-control">
+                                </select>
+                            </div>
+                            <div class="mb-3 col-xl-3">
+                                <label for="transferAmount" class="form-label">Transfer Amount ($)</label>
+                                <input type="number" class="form-control" id="transferAmount" placeholder="Transfer Amount">
+                            </div>
+                            <div class="mb-3 col-xl-3">
+                                <label for="fees" class="form-label">Fees (%))</label>
+                                <input type="number" class="form-control" id="fees" placeholder="Fees" disabled value="10">
+                            </div>
+                            <div class="mb-3 col-xl-3">
+                                <label for="transactionAmountTransfer" class="form-label">Transaction Amount ($)</label>
+                                <input type="number" class="form-control" id="transactionAmountTransfer" disabled
+                                       placeholder="Transaction Amount">
+                            </div>
+
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-outline-primary" id="btnTransfer">Transfer</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</th:block>

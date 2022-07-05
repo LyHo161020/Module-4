@@ -1,0 +1,14 @@
+<component name="ArtifactManager">
+  <artifact type="war" name="Spring_DashBoard:war">
+    <output-path>$PROJECT_DIR$/target</output-path>
+    <properties id="maven-jee-properties">
+      <options>
+        <module>Spring_DashBoard</module>
+        <packaging>war</packaging>
+      </options>
+    </properties>
+    <root id="archive" name="Spring_DashBoard-1.0-SNAPSHOT.war">
+      <element id="artifact" artifact-name="Spring_DashBoard:war exploded" />
+    </root>
+  </artifact>
+</component>

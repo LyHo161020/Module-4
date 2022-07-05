@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<th:block th:fragment="modal-withdraw">
+    <div id="mdWithdraw" class="modal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Withdraw</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="frmWithdraw">
+                        <div class="row">
+                            <div class="mb-3 col-xl-6">
+                                <label for="customerIdWithdraw" class="form-label">Customer Id</label>
+                                <input type="number" class="form-control" id="customerIdWithdraw" disabled placeholder="ID">
+                            </div>
+                            <div class="mb-3 col-xl-6">
+                                <label for="fullNameWithdraw" class="form-label">FullName</label>
+                                <input type="text" class="form-control" id="fullNameWithdraw" placeholder="Full Name" disabled>
+                            </div>
+
+                        </div>
+
+                        <div class="row">
+                            <div class="mb-3 col-xl-6">
+                                <label for="balanceWithdraw" class="form-label">Current balance ($)</label>
+                                <input type="number" class="form-control" id="balanceWithdraw" placeholder="Balance" disabled>
+                            </div>
+                            <div class="mb-3 col-xl-6">
+                                <label for="transactionAmountWithdraw" class="form-label">Transaction Amount ($)</label>
+                                <input type="number" class="form-control" id="transactionAmountWithdraw"
+                                       placeholder="Transaction Amount">
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-outline-warning" id="btnWithdraw">Withdraw</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</th:block>

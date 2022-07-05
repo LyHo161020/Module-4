@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+  <link rel="stylesheet" href="/assets/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" />
+  <link href="/assets//css/style.css">
+</head>
+
+<body>
+  <div class="container">
+    <h1>Customer Infomation</h1>
+    <form id="frmCreate" class="mb-3">
+      <div class="row">
+        <div class="mb-3 col-xl-6">
+          <label for="exampleInputEmail1" class="form-label">FullName</label>
+          <input type="text" class="form-control" id="fullName" placeholder="Full Name">
+        </div>
+        <div class="mb-3 col-xl-6">
+          <label for="email" class="form-label">Email</label>
+          <input type="email" class="form-control" id="email">
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="mb-3 col-xl-6">
+          <label for="phone" class="form-label">Phone</label>
+          <input type="text" class="form-control" id="phone" placeholder="Phone">
+        </div>
+        <div class="mb-3 col-xl-6">
+          <label for="address" class="form-label">Address</label>
+          <input type="text" class="form-control" id="address">
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col-xl-3">
+          <button type="button" class="btn btn-outline-primary" id="btnCreate">Create</button>
+        </div>
+      </div>
+    </form>
+
+    <table class="table table-hover" id="tbCustomer">
+      <thead>
+        <tr>
+          <th scope="col">#</th>
+          <th scope="col">FullName</th>
+          <th scope="col">Email</th>
+          <th scope="col">Phone</th>
+          <th scope="col">Address</th>
+          <th scope="col">Balance</th>
+          <th scope="col" class="text-center">Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- <tr>
+                <th scope="row">1</th>
+                <td>Mark</td>
+                <td>Otto</td>
+                <td>2345</td>
+                <td>28 NTP</td>
+                <td>10000000</td>
+                <td>  
+                  <button type="button" class="btn btn-outline-secondary" id="btnEdit"> <i class="fas fa-pen-square"></i> </button>
+                  <button type="button" class="btn btn-outline-success" id="btnDeposit"> <i class="fas fa-plus"></i> </button>
+                  <button type="button" class="btn btn-outline-primary" id="btnWithdraw"> <i class="fas fa-minus"></i> </button>
+                  <button type="button" class="btn btn-outline-warning" id="btnTransfer"> <i class="fas fa-exchange-alt"></i> </button>
+                  <button type="button" class="btn btn-outline-danger" id="btnBlock"> <i class="fas fa-ban"></i> </button>  
+                </td>
+              </tr> -->
+      </tbody>
+    </table>
+  </div>
+
+   <!-- Modal Edit -->
+  <div id="mdEdit" class="modal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Edit</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <div class="row">
+            <div class="mb-3 col-xl-6">
+              <label for="fullNameUp" class="form-label">FullName</label>
+              <input type="text" class="form-control" id="fullNameUp" placeholder="Full Name">
+            </div>
+            <div class="mb-3 col-xl-6">
+              <label for="emailUp" class="form-label">Email</label>
+              <input type="email" class="form-control" id="emailUp">
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="mb-3 col-xl-6">
+              <label for="phoneUp" class="form-label">Phone</label>
+              <input type="text" class="form-control" id="phoneUp" placeholder="Phone">
+            </div>
+            <div class="mb-3 col-xl-6">
+              <label for="addressUp" class="form-label">Address</label>
+              <input type="text" class="form-control" id="addressUp">
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
+          <button type="button" class="btn btn-outline-primary" id="btnEdit">Save changes</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Modal Deposit -->
+  <div id="mdDeposit" class="modal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Deposit</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <div class="row">
+            <div class="mb-3 col-xl-6">
+              <label for="customerIdUp" class="form-label">Customer Id</label>
+              <input type="number" class="form-control" id="customerIdUp">
+            </div>
+            <div class="mb-3 col-xl-6">
+              <label for="fullNameDepositUp" class="form-label">FullName</label>
+              <input type="text" class="form-control" id="fullNameDepositUp" placeholder="Full Name">
+            </div>
+           
+          </div>
+
+          <div class="row">
+            <div class="mb-3 col-xl-6">
+              <label for="balanceUp" class="form-label">Current balance ($)</label>
+              <input type="number" class="form-control" id="balanceUp" placeholder="Phone">
+            </div>
+            <div class="mb-3 col-xl-6">
+              <label for="transactionAmount" class="form-label">Transaction Amount ($)</label>
+              <input type="number" class="form-control" id="transactionAmount">
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
+          <button type="button" class="btn btn-outline-success" id="btnEdit">Deposit</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="/assets//js/bootstrap.bundle.min.js"></script>
+  <script src="/assets/js/jquery-3.6.0.min.js"></script>
+  <script src="/assets/js/app.js"></script>
+
+  <script>
+    let customers = [];
+    let customer = new Customer();
+    let id = 1;
+
+
+
+    // customers.push(new Customer(id++,"NVA","nva@co.cc","2345","28 NTP",0))
+    // customers.push(new Customer(id++,"NVB","nvb@co.cc","23456","28 NTP",0))
+    
+    
+
+    $("#btnEdit").on("click", function () {
+      let fullName = $('#fullNameUp').val();
+      let email = $('#emailUp').val();
+      let phone = $('#phoneUp').val();
+      let address = $('#addressUp').val();
+
+      customer.fullName = fullName;
+      customer.email = email;
+      customer.phone = phone;
+      customer.address = address;
+
+      $.ajax({
+        type: "PUT",
+        url: "http://localhost:3000/customer/" + customer.id,
+        data: customer
+      }).done((data) => {
+        let str = `  <tr id = "tr_${data.id}">
+                                  <th scope="row">${data.id}</th>
+                                  <td>${data.fullName}</td>
+                                  <td>${data.email}</td>
+                                  <td>${data.phone}</td>
+                                  <td>${data.address}</td>
+                                  <td>0</td>
+                                  <td class="text-center">
+                                      <button type="button" class="btn btn-outline-secondary edit" data-id = "${data.id}"> <i class="fas fa-pen-square"></i> </button>
+                                      <button data-id = "${data.id}" type="button" class="btn btn-outline-success" id="btnDeposit(${data.id})"> <i class="fas fa-plus"></i> </button>
+                                      <button data-id = "${data.id}" type="button" class="btn btn-outline-primary" id="btnWithdraw(${data.id})"> <i class="fas fa-minus"></i> </button>
+                                      <button data-id = "${data.id}" type="button" class="btn btn-outline-warning" id="btnTransfer(${data.id})"> <i class="fas fa-exchange-alt"></i> </button>
+                                      <button data-id = "${data.id}" type="button" class="btn btn-outline-danger" id="btnBlock(${data.id})"> <i class="fas fa-ban"></i> </button>  
+                                  </td>
+                     </tr>`;
+        let currentRow = $("#tr_" + data.id);
+        currentRow.replaceWith(str);
+
+         handleEditBtn();
+      }).fail((err) => {
+        alert("update fail");
+      })
+
+      $("#mdEdit").modal("hide");
+    })
+
+    $('#btnCreate').on("click", function () {
+      let fullName = $('#fullName').val();
+      let email = $('#email').val();
+      let phone = $('#phone').val();
+      let address = $('#address').val();
+
+      customer.id = ++id;
+      customer.fullName = fullName;
+      customer.email = email;
+      customer.phone = phone;
+      customer.address = address;
+      customer.balance = 0;
+      customer.isDeleted = 0;
+      $.ajax({
+        type: "POST",
+        url: "http://localhost:3000/customer?idDeleted=0",
+        data: customer
+      }).done((data) => {
+
+        let str = `  <tr id = "tr_${data.id}">
+                                <th scope="row">${data.id}</th>
+                                <td>${data.fullName}</td>
+                                <td>${data.email}</td>
+                                <td>${data.phone}</td>
+                                <td>${data.address}</td>
+                                <td>0</td>
+                                <td class="text-center">
+                                    <button type="button" class="btn btn-outline-secondary edit" data-id = "${data.id}"> <i class="fas fa-pen-square"></i> </button>
+                                    <button data-id = "${data.id}" type="button" class="btn btn-outline-success deposit" id="btnDeposit(${data.id})"> <i class="fas fa-plus"></i> </button>
+                                    <button data-id = "${data.id}" type="button" class="btn btn-outline-primary" id="btnWithdraw(${data.id})"> <i class="fas fa-minus"></i> </button>
+                                    <button data-id = "${data.id}" type="button" class="btn btn-outline-warning" id="btnTransfer(${data.id})"> <i class="fas fa-exchange-alt"></i> </button>
+                                    <button data-id = "${data.id}" type="button" class="btn btn-outline-danger" id="btnBlock(${data.id})"> <i class="fas fa-ban"></i> </button>  
+                                </td>
+                            </tr>`;
+
+        $('#tbCustomer tbody').prepend(str);
+      })
+
+      $("#frmCreate")[0].reset();
+      handleEditBtn();
+    })
+
+    function loadCustomer() {
+      $.ajax({
+        type: "GET",
+        url: "http://localhost:3000/customer?isDeleted=0"
+      }).done((data) => {
+        $.each(data, (i, item) => {
+          id = item.id;
+          let str = `  <tr id = "tr_${item.id}">
+                                <th scope="row">${item.id}</th>
+                                <td>${item.fullName}</td>
+                                <td>${item.email}</td>
+                                <td>${item.phone}</td>
+                                <td>${item.address}</td>
+                                <td>${item.balance}</td>
+                                <td class="text-center">
+                                    <button type="button" class="btn btn-outline-secondary edit" data-id = "${item.id}"> <i class="fas fa-pen-square"></i> </button>
+                                    <button data-id = "${item.id}" type="button" class="btn btn-outline-success deposit" id="btnDeposit${item.id}"> <i class="fas fa-plus"></i> </button>
+                                    <button data-id = "${item.id}" type="button" class="btn btn-outline-primary" id="btnWithdraw${item.id}"> <i class="fas fa-minus"></i> </button>
+                                    <button data-id = "${item.id}"type="button" class="btn btn-outline-warning" id="btnTransfer${item.id}"> <i class="fas fa-exchange-alt"></i> </button>
+                                    <button data-id = "${item.id}"type="button" class="btn btn-outline-danger" id="btnBlock${item.id}"> <i class="fas fa-ban"></i> </button>  
+                                </td> 
+                            </tr>`;
+          $('#tbCustomer tbody').prepend(str);
+        });
+        handleEditBtn();
+      })
+
+
+    }
+
+
+    function handleEditBtn() {
+      $('.edit').click(function () {
+
+        let id = $(this).data("id");
+        findCustomerById(id).then(function () {
+          $("#fullNameUp").val(customer.fullName);
+          $("#emailUp").val(customer.email);
+          $("#phoneUp").val(customer.phone);
+          $("#addressUp").val(customer.address);
+          $("#mdEdit").modal("show");
+        });
+      })
+
+      $(".deposit").click(function () {
+        let id = $(this).data("id");
+        findCustomerById(id).then(function () {        
+          $("#customerIdUp").val(customer.id);
+          $("#fullNameDepositUp").val(customer.fullName);
+          $("#mdDeposit").modal("show");
+        });
+      })
+    }
+
+
+
+    function findCustomerById(id) {
+      return $.ajax({
+        type: "GET",
+        url: "http://localhost:3000/customer/" + id,
+        data: customer
+      }).done((data) => {
+        customer = data;
+      }).fail((err) => {
+        alert("Id not found!")
+      })
+    }
+
+    loadCustomer();
+  </script>
+</body>
+
+</html>

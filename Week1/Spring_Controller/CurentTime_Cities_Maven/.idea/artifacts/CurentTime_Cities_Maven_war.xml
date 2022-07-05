@@ -1,0 +1,14 @@
+<component name="ArtifactManager">
+  <artifact type="war" name="CurentTime_Cities_Maven:war">
+    <output-path>$PROJECT_DIR$/target</output-path>
+    <properties id="maven-jee-properties">
+      <options>
+        <module>CurentTime_Cities_Maven</module>
+        <packaging>war</packaging>
+      </options>
+    </properties>
+    <root id="archive" name="CurentTime_Cities_Maven-1.0-SNAPSHOT.war">
+      <element id="artifact" artifact-name="CurentTime_Cities_Maven:war exploded" />
+    </root>
+  </artifact>
+</component>
