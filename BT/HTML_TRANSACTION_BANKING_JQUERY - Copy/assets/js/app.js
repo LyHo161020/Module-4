@@ -1,12 +1,25 @@
 class Customer {
-    constructor(id, fullName, email, phone, address, balance, isDeleted) {
+    constructor(id, fullName, email, phone, location, balance, isDeleted) {
         this.id = id;
         this.fullName = fullName;
         this.email = email;
         this.phone = phone;
-        this.address = address;
+        this.location = location;
         this.balance = balance;
         this.isDeleted = isDeleted;
+    }
+}
+
+class LocationRegion {
+    constructor(id, provinceId, provinceName, districtID, districtName, wardId, wardName, address){
+        this.id = id;
+        this.provinceId = provinceId;
+        this.provinceName = provinceName;
+        this.districtID = districtID;
+        this.districtName = districtName;
+        this.wardId = wardId;
+        this.wardName = wardName;
+        this.address = address;
     }
 }
 

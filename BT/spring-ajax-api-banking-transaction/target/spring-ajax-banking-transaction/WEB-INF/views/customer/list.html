@@ -1,0 +1,924 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <title>Index</title>
+    <th:block th:replace="/layout/head :: head"/>
+</head>
+
+<body>
+<div class="container">
+
+    <header>
+        <div class="row">
+            <div class="col-sm-5">
+                <h1>List of customers</h1>
+            </div>
+            <div class="col-sm-7" style="text-align: right;">
+                <a class="btn btn-outline-light create-modal" style="margin-top: 10px;">
+                    <i class="fa fa-plus-square-o"></i>
+                    <span>Add New Customer</span>
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <table id="tbCustomer" class="table table-hover">
+        <thead>
+        <tr>
+            <th scope="col">#</th>
+            <th scope="col">FullName</th>
+            <th scope="col">Email</th>
+            <th scope="col">Phone</th>
+            <th scope="col">Address</th>
+            <th scope="col">Balance</th>
+            <th scope="col" class="text-center">Action</th>
+        </tr>
+        </thead>
+        <tbody>
+        </tbody>
+    </table>
+</div>
+
+<th:block th:replace="/customer/modal_create :: modal_create" />
+
+<th:block th:replace="/customer/modal_update :: modal_update" />
+
+<th:block th:replace="/customer/modal_deposit :: modal_deposit" />
+
+<th:block th:replace="/customer/modal_withdraw :: modal_withdraw" />
+
+<th:block th:replace="/customer/modal_transfer :: modal_transfer" />
+
+<th:block th:replace="/layout/script :: script" />
+
+<script>
+    let customers = [];
+    let customer = new Customer();
+    let deposit = new Deposit();
+    let withdraw = new Withdraw();
+    let transfer = new Transfer();
+
+    function loadCustomers() {
+
+        $.ajax({
+            type: "GET",
+            url: "http://localhost:8080/api/customers"
+        })
+            .done((item) => {
+                $.each(item, (i, item) => {
+                    id = item.id;
+                    let str = `
+                        <tr id="tr_${item.id}">
+                            <td>${item.id}</th>
+                            <td>${item.fullName}</td>
+                            <td>${item.email}</td>
+                            <td>${item.phone}</td>
+
+                            <td>${item.address}</td>
+                            <td>${item.balance}</td>
+                             <td class="text-center">
+                              <button type="button" class="btn btn-outline-secondary edit" data-id = "${item.id}"> <i class="fas fa-pen-square"></i> </button>
+                              <button data-id = "${item.id}" type="button" class="btn btn-outline-success deposit" id="btnDeposit(${item.id})"> <i class="fas fa-plus"></i> </button>
+                              <button data-id = "${item.id}" type="button" class="btn btn-outline-warning withdraw" id="btnWithdraw(${item.id})"> <i class="fas fa-minus"></i> </button>
+                              <button data-id = "${item.id}" type="button" class="btn btn-outline-primary transfer" id="btnTransfer(${item.id})"> <i class="fas fa-exchange-alt"></i> </button>
+                              <button data-id = "${item.id}" type="button" class="btn btn-outline-danger block" id="btnBlock(${item.id})"> <i class="fas fa-ban"></i> </button>
+                          </td>
+                        </tr>
+                    `;
+
+                    $("#tbCustomer tbody").prepend(str);
+                })
+
+                // handleBtn();
+
+            });
+    }
+
+    function doEdit() {
+        let fullName = $('#fullNameUp').val();
+        let email = $('#emailUp').val();
+        let phone = $('#phoneUp').val();
+        let address = $('#addressUp').val();
+
+        customer.fullName = fullName;
+        customer.email = email;
+        customer.phone = phone;
+        customer.address = address;
+
+        $.ajax({
+            headers: {
+                "accept": "application/json",
+                "content-type": "application/json"
+            },
+            type: "PUT",
+            url: "http://localhost:8080/api/customers/edit/" + customer.id,
+            data: JSON.stringify(customer)
+        })
+            .done((data) => {
+                console.log(data);
+                let str = `
+                    <tr id="tr_${data.id}">
+                        <td>${data.id}</th>
+                        <td>${data.fullName}</td>
+                        <td>${data.email}</td>
+                        <td>${data.phone}</td>
+                        <td>${data.address}</td>
+                        <td>${data.balance}</td>
+                         <td class="text-center">
+                              <button type="button" class="btn btn-outline-secondary edit" data-id = "${data.id}"> <i class="fas fa-pen-square"></i> </button>
+                              <button data-id = "${data.id}" type="button" class="btn btn-outline-success deposit" id="btnDeposit(${data.id})"> <i class="fas fa-plus"></i> </button>
+                              <button data-id = "${data.id}" type="button" class="btn btn-outline-warning withdraw" id="btnWithdraw(${data.id})"> <i class="fas fa-minus"></i> </button>
+                              <button data-id = "${data.id}" type="button" class="btn btn-outline-primary transfer" id="btnTransfer(${data.id})"> <i class="fas fa-exchange-alt"></i> </button>
+                              <button data-id = "${data.id}" type="button" class="btn btn-outline-danger block" id="btnBlock(${data.id})"> <i class="fas fa-ban"></i> </button>
+                         </td>
+                    </tr>
+                `;
+
+                let currentRow = $('#tr_' + data.id);
+                currentRow.replaceWith(str);
+
+                handleBtn();
+                $("#mdEdit").modal("hide");
+
+                App.SweetAlert.showSuccessAlert("Update customer success!");
+
+            })
+            .fail((err) => {
+                console.log(err);
+
+                let str = "";
+                if(err.responseJSON){
+                    $.each(err.responseJSON, (key, value) => {
+                        str += `<label id = "${key}Up-error" class = "error" for="${key}Up"> ${value} </label>`;
+                        $("#" + key).addClass("error");
+                    })
+                    $("#mdEdit .modal-alert-danger").removeClass("hide").addClass("show").append(str);
+                }
+
+                App.IziToast.showErrorAlert("Update customer fail!");
+            })
+
+        // $("#frmEdit")[0].reset();
+    }
+
+    function doCreate() {
+        let fullName = $('#fullName').val();
+        let email = $('#email').val();
+        let phone = $('#phone').val();
+        let address = $('#address').val();
+
+        delete customer.id;
+        customer.fullName = fullName;
+        customer.email = email;
+        customer.phone = phone;
+        customer.address = address;
+        customer.balance = +0;
+        customer.isDeleted = +0;
+
+        $.ajax({
+            headers: {
+                "accept": "application/json",
+                "content-type": "application/json"
+            },
+            type: "POST",
+            url: "http://localhost:8080/api/customers/create",
+            data: JSON.stringify(customer)
+        })
+            .done((data) => {
+
+                console.log(data)
+
+                let str = `
+                    <tr id="tr_${data.id}">
+                        <td>${data.id}</th>
+                        <td>${data.fullName}</td>
+                        <td>${data.email}</td>
+                        <td>${data.phone}</td>
+                        <td>${data.address}</td>
+                        <td>${data.balance}</td>
+                         <td class="text-center">
+                              <button type="button" class="btn btn-outline-secondary edit" data-id = "${data.id}"> <i class="fas fa-pen-square"></i> </button>
+                              <button data-id = "${data.id}" type="button" class="btn btn-outline-success deposit" id="btnDeposit(${data.id})"> <i class="fas fa-plus"></i> </button>
+                              <button data-id = "${data.id}" type="button" class="btn btn-outline-warning withdraw" id="btnWithdraw(${data.id})"> <i class="fas fa-minus"></i> </button>
+                              <button data-id = "${data.id}" type="button" class="btn btn-outline-primary transfer" id="btnTransfer(${data.id})"> <i class="fas fa-exchange-alt"></i> </button>
+                              <button data-id = "${data.id}" type="button" class="btn btn-outline-danger block" id="btnBlock(${data.id})"> <i class="fas fa-ban"></i> </button>
+                         </td>
+                    </tr>
+                `;
+
+                $("#tbCustomer tbody").prepend(str);
+
+                handleBtn();
+                $("#mdCreate").modal("hide");
+
+                App.SweetAlert.showSuccessAlert("Create customer success!");
+            })
+            .fail((err) => {
+                console.log(err);
+
+                let str = "";
+                if(err.responseJSON){
+                    $.each(err.responseJSON, (key, value) => {
+                        str += `<label id = "${key}-error" class = "error" for="${key}"> ${value} </label>`;
+                        $("#" + key).addClass("error");
+                    })
+                    $("#mdCreate .modal-alert-danger").removeClass("hide").addClass("show").append(str);
+                }
+
+                // let str = `<label id = "message-error" class = "error"> ${err.responseJSON} </label>`;
+
+
+
+                App.IziToast.showErrorAlert("Create customer fail!");
+            });
+
+        $("#frmCreate")[0].reset();
+    }
+
+
+    function doDeposit() {
+        let customerId = +$('#customerIdDep').val();
+        let transactionAmount = +$('#transactionAmountDep').val();
+
+        delete deposit.id;
+        deposit.customerId = customerId;
+        deposit.transactionAmount = transactionAmount;
+        // deposit.createdAt = getDateTime();
+        deposit.createdBy = 1;
+        // deposit.updatedAt = getDateTime();
+        deposit.updatedBy = 1;
+        deposit.isDeleted = 0;
+
+        console.log(JSON.stringify(deposit));
+
+        $.ajax({
+            headers: {
+                "accept": "application/json",
+                "content-type": "application/json"
+            },
+            type: "POST",
+            url: "http://localhost:8080/api/customers/deposit/" + customerId,
+            data: JSON.stringify(deposit)
+        })
+            .done((data) => {
+                console.log("update balance");
+                console.log(data);
+                let str = `
+                    <tr id="tr_${data.id}">
+                        <td>${data.id}</th>
+                        <td>${data.fullName}</td>
+                        <td>${data.email}</td>
+                        <td>${data.phone}</td>
+                        <td>${data.address}</td>
+                        <td>${data.balance}</td>
+                         <td class="text-center">
+                              <button type="button" class="btn btn-outline-secondary edit" data-id = "${data.id}"> <i class="fas fa-pen-square"></i> </button>
+                              <button data-id = "${data.id}" type="button" class="btn btn-outline-success deposit" id="btnDeposit(${data.id})"> <i class="fas fa-plus"></i> </button>
+                              <button data-id = "${data.id}" type="button" class="btn btn-outline-warning withdraw" id="btnWithdraw(${data.id})"> <i class="fas fa-minus"></i> </button>
+                              <button data-id = "${data.id}" type="button" class="btn btn-outline-primary transfer" id="btnTransfer(${data.id})"> <i class="fas fa-exchange-alt"></i> </button>
+                              <button data-id = "${data.id}" type="button" class="btn btn-outline-danger block" id="btnBlock(${data.id})"> <i class="fas fa-ban"></i> </button>
+                         </td>
+                    </tr>
+                `;
+
+                let currentRow = $('#tr_' + data.id);
+                currentRow.replaceWith(str);
+
+
+                handleBtn();
+
+                $("#mdDeposit").modal("hide");
+
+                App.SweetAlert.showSuccessAlert("Deposit success!");
+            })
+            .fail((err) => {
+                console.log(err.responseJSON);
+
+                let str = "";
+                if (err.responseJSON) {
+                    $.each(err.responseJSON, (key, value) => {
+                        str += `<label id = "${key}Dep-error" class = "error" for="${key}Dep"> ${value} </label>`;
+                        $("#" + key).addClass("error");
+                    })
+                    $("#mdDeposit .modal-alert-danger").removeClass("hide").addClass("show").append(str);
+                }
+
+                // let str = `<label id = "message-error" class = "error"> ${err.responseJSON} </label>`;
+
+
+                App.IziToast.showErrorAlert("Deposit customer fail!");
+            })
+    }
+
+    function doWithdraw(){
+        let id = $('#customerIdWd').val();
+        findById(id).then(function () {
+            let transactionAmount = $('#transactionAmountWd').val();
+
+            delete withdraw.id;
+            withdraw.customerId = id;
+            // withdraw.createAt = getDateTime();
+            withdraw.createBy = 1;
+            // withdraw.updateAt = getDateTime();
+            withdraw.updateBy = 1;
+            withdraw.isDeleted = 0;
+            withdraw.transactionAmount = transactionAmount;
+
+            console.log(withdraw);
+
+            $.ajax({
+                headers: {
+                    "accept": "application/json",
+                    "content-type": "application/json"
+                },
+                type: "POST",
+                url: "http://localhost:8080/api/customers/withdraw/" + id,
+                data: JSON.stringify(withdraw)
+            })
+                .done((data) => {
+                    let str = `  <tr id = "tr_${data.id}">
+                          <th scope="row">${data.id}</th>
+                          <td>${data.fullName}</td>
+                          <td>${data.email}</td>
+                          <td>${data.phone}</td>
+                          <td>${data.address}</td>
+                          <td>${data.balance}</td>
+                          <td class="text-center">
+                              <button type="button" class="btn btn-outline-secondary edit" data-id = "${data.id}"> <i class="fas fa-pen-square"></i> </button>
+                              <button data-id = "${data.id}" type="button" class="btn btn-outline-success deposit" id="btnDeposit(${data.id})"> <i class="fas fa-plus"></i> </button>
+                              <button data-id = "${data.id}" type="button" class="btn btn-outline-warning withdraw" id="btnWithdraw(${data.id})"> <i class="fas fa-minus"></i> </button>
+                              <button data-id = "${data.id}" type="button" class="btn btn-outline-primary transfer" id="btnTransfer(${data.id})"> <i class="fas fa-exchange-alt"></i> </button>
+                              <button data-id = "${data.id}" type="button" class="btn btn-outline-danger block" id="btnBlock(${data.id})"> <i class="fas fa-ban"></i> </button>
+                          </td>
+             </tr>`;
+                    let currentRow = $("#tr_" + data.id);
+                    currentRow.replaceWith(str);
+
+                    handleBtn();
+                    $("#mdWithdraw").modal("hide");
+
+                    App.SweetAlert.showSuccessAlert("Withdraw success!");
+                }).fail((err) => {
+                console.log(err);
+
+                let str = "";
+                if (err.responseJSON) {
+                    $.each(err.responseJSON, (key, value) => {
+                        str += `<label id = "${key}Wd-error" class = "error" for="${key}Wd"> ${value} </label>`;
+                        $("#" + key).addClass("error");
+                    })
+                    $("#mdWithdraw .modal-alert-danger").removeClass("hide").addClass("show").append(str);
+                }
+                App.IziToast.showErrorAlert("Withdraw customer fail!");
+            })
+        })
+    }
+
+    function doTransfer(){
+
+        let transferAmount = $("#transferAmountTrf").val();
+        let repId = $("#recipientIdTrf").val();
+
+        delete transfer.id;
+        // transfer.fees = 10;
+        // transfer.feesAmount = transferAmount * 0.1;
+        // transfer.transactionAmount = transferAmount * 1.1;
+        transfer.transferAmount =  transferAmount;
+        transfer.recipientId =  repId;
+        transfer.senderId =  $("#senderIdTrf").val();
+        console.log(transfer);
+
+        $("#mdTransfer .modal-alert-danger").removeClass('show').addClass('hide').empty();
+
+        $.ajax({
+            headers: {
+                "accept": "application/json",
+                "content-type": "application/json"
+            },
+            type: "PUT",
+            url: "http://localhost:8080/api/customers/transfers/" + transfer.senderId,
+            data: JSON.stringify(transfer)
+        })
+            .done((data) => {
+                let sender = data.sender;
+                let rep = data.rep;
+
+                let strSender = `  <tr id = "tr_${sender.id}">
+                          <th scope="row">${sender.id}</th>
+                          <td>${sender.fullName}</td>
+                          <td>${sender.email}</td>
+                          <td>${sender.phone}</td>
+                          <td>${sender.address}</td>
+                          <td>${sender.balance}</td>
+                          <td class="text-center">
+                              <button type="button" class="btn btn-outline-secondary edit" data-id = "${sender.id}"> <i class="fas fa-pen-square"></i> </button>
+                              <button data-id = "${sender.id}" type="button" class="btn btn-outline-success deposit" id="btnDeposit(${sender.id})"> <i class="fas fa-plus"></i> </button>
+                              <button data-id = "${sender.id}" type="button" class="btn btn-outline-warning withdraw" id="btnWithdraw(${sender.id})"> <i class="fas fa-minus"></i> </button>
+                              <button data-id = "${sender.id}" type="button" class="btn btn-outline-primary transfer" id="btnTransfer(${sender.id})"> <i class="fas fa-exchange-alt"></i> </button>
+                              <button data-id = "${sender.id}" type="button" class="btn btn-outline-danger block" id="btnBlock(${sender.id})"> <i class="fas fa-ban"></i> </button>
+                          </td>
+             </tr>`;
+                let currentRowSender = $("#tr_" + sender.id);
+                currentRowSender.replaceWith(strSender);
+                handleBtn();
+
+
+                let str = `  <tr id = "tr_${rep.id}">
+                          <th scope="row">${rep.id}</th>
+                          <td>${rep.fullName}</td>
+                          <td>${rep.email}</td>
+                          <td>${rep.phone}</td>
+                          <td>${rep.address}</td>
+                          <td>${rep.balance}</td>
+                          <td class="text-center">
+                              <button type="button" class="btn btn-outline-secondary edit" data-id = "${rep.id}"> <i class="fas fa-pen-square"></i> </button>
+                              <button data-id = "${rep.id}" type="button" class="btn btn-outline-success deposit" id="btnDeposit(${rep.id})"> <i class="fas fa-plus"></i> </button>
+                              <button data-id = "${rep.id}" type="button" class="btn btn-outline-warning withdraw" id="btnWithdraw(${rep.id})"> <i class="fas fa-minus"></i> </button>
+                              <button data-id = "${rep.id}" type="button" class="btn btn-outline-primary transfer" id="btnTransfer(${rep.id})"> <i class="fas fa-exchange-alt"></i> </button>
+                              <button data-id = "${rep.id}" type="button" class="btn btn-outline-danger block" id="btnBlock(${rep.id})"> <i class="fas fa-ban"></i> </button>
+                          </td>
+             </tr>`;
+                let currentRow = $("#tr_" + rep.id);
+                currentRow.replaceWith(str);
+                handleBtn();
+
+                $("#mdTransfer").modal("hide");
+
+                App.SweetAlert.showSuccessAlert("Transfer success!");
+
+            })
+            .fail((err) => {
+                console.log(err);
+                let str = "";
+                if (err.responseJSON) {
+                    $.each(err.responseJSON, (key, value) => {
+                        str += `<label id = "${key}Trf-error" class = "error" for="${key}Trf"> ${value} </label>`;
+                        $("#" + key).addClass("error");
+                    })
+                    $("#mdTransfer .modal-alert-danger").removeClass("hide").addClass("show").append(str);
+                }
+
+
+                App.IziToast.showErrorAlert("Deposit customer fail!");
+            })
+    }
+
+
+
+    $('.create-modal').on('click', function () {
+        $('#mdCreate').modal('show');
+    })
+
+    $('#btnCreate').on('click', function () {
+        $("#mdCreate .modal-alert-danger").empty();
+        $('#frmCreate').submit();
+    });
+
+    $('#btnEdit').on('click', function () {
+        $('#frmEdit').submit();
+    })
+
+
+    $("#btnDeposit").on('click', function () {
+        $('#mdDeposit .modal-alert-danger').removeClass('show').addClass('hide');
+        $("#mdDeposit .modal-alert-danger").empty();
+        $('#frmDeposit').submit();
+    })
+
+    $("#btnWithdraw").on('click', function () {
+        $('#mdWithdraw .modal-alert-danger').removeClass('show').addClass('hide');
+        $("#mdWithdraw .modal-alert-danger").empty();
+        $('#frmWithdraw').submit();
+    })
+
+    $("#btnTransferMoney").on('click', function () {
+        $('#mdTransfer .modal-alert-danger').removeClass('show').addClass('hide');
+        $("#mdTransfer .modal-alert-danger").empty();
+        $('#frmTransfer').submit();
+    })
+
+    function handleEditBtn() {
+        $('.edit').on('click', function () {
+
+            let id = $(this).data('id')
+            console.log(id);
+            findById(id).then(function () {
+                $('#fullNameUp').val(customer.fullName);
+                $('#emailUp').val(customer.email);
+                $('#phoneUp').val(customer.phone);
+                $('#addressUp').val(customer.address);
+
+                $('#mdEdit').modal('show');
+            });
+        });
+    }
+
+    function handleDepositBtn() {
+        $('.deposit').on('click', function () {
+
+            let id = $(this).data('id');
+
+            findById(id).then(function () {
+                $('#customerIdDep').val(customer.id);
+                $('#fullNameDep').val(customer.fullName);
+                $('#balanceDep').val(customer.balance);
+
+                // $('#transactionAmountDep').val(0);
+
+                $('#mdDeposit').modal('show');
+            });
+        });
+    }
+
+    function handleWithdrawBtn() {
+        $(".withdraw").click(function () {
+            console.log("withdraw");
+
+            let id = $(this).data("id");
+
+            findById(id).then(function () {
+                $("#customerIdWd").val(customer.id);
+                $("#fullNameWd").val(customer.fullName);
+                $("#balanceWd").val(customer.balance);
+                $("#mdWithdraw").modal("show");
+            });
+        })
+    }
+
+    function handleTransferBtn() {
+        $(".transfer").click(function () {
+
+            let id = $(this).data("id");
+
+            findById(id).then(function () {
+                $("#senderIdTrf").val(customer.id);
+                $("#senderNameTrf").val(customer.fullName);
+                $("#emailTrf").val(customer.email);
+                $("#balanceTrf").val(customer.balance);
+                $("#mdTransfer").modal("show");
+
+                showRepName(id);
+                calTransactionAmount();
+            });
+        })
+    }
+
+    function handleBtn() {
+        handleEditBtn();
+        handleDepositBtn();
+        handleWithdrawBtn();
+        handleTransferBtn();
+    }
+
+    // function handleTransferBtn() {
+    //     $(".transfer").click(function () {
+    //
+    //         let id = $(this).data("id");
+    //
+    //         findById(id).then(function () {
+    //             $("#senderIdTrf").val(customer.id);
+    //             $("#senderNameTrf").val(customer.fullName);
+    //             $("#emailTrf").val(customer.email);
+    //             $("#balanceTrf").val(customer.balance);
+    //             $("#mdTransfer").modal("show");
+    //
+    //             showRepName(id);
+    //             calTransactionAmount();
+    //         });
+    //     })
+    // }
+
+    function showRepName(id) {
+        console.log("showRepName");
+        $.ajax({
+            type: "GET",
+            url: "http://localhost:8080/api/customers"
+        }).done((data) => {
+            $.each(data, (i, item) => {
+                let str = `<option value="${item.id}" ${(item.id == id) ? "disabled" : ""} >(${item.id}) ${item.fullName}</option>`;
+                $("#recipientIdTrf").append(str);
+            })
+        })
+            .fail((err) => {
+                alert("showRepNAme fail!");
+            })
+    }
+
+    $("#mdCreate").on("hidden.bs.modal", function () {
+        $("#mdCreate .modal-alert-danger").empty();
+        $("#frmCreate")[0].reset();
+        $('#mdCreate .modal-alert-danger').removeClass('show').addClass('hide');
+    });
+
+    $("#mdEdit").on("hidden.bs.modal", function () {
+        // $("#frmEdit")[0].reset();
+        // $('#mdEdit .modal-alert-danger').removeClass('show').addClass('hide');
+        $("#mdEdit .modal-alert-danger").empty();
+        $("#mdEdit .modal-alert-danger").addClass("hide");
+        $("#mdEdit .modal-alert-danger").removeClass("show");
+        $("#frmEdit input.error").removeClass("error");
+        $("#frmEdit")[0].reset();
+        $("#frmEdit").validate().resetForm();
+    });
+
+    $("#mdDeposit").on("hidden.bs.modal", function () {
+        $("#mdDeposit .modal-alert-danger").empty();
+        $("#frmDeposit")[0].reset();
+        $('#mdDeposit .modal-alert-danger').removeClass('show').addClass('hide');
+        $("#frmDeposit").validate().resetForm();
+    });
+
+    $("#mdWithdraw").on("hidden.bs.modal", function () {
+        $("#mdWithdraw .modal-alert-danger").empty();
+        $("#frmWithdraw")[0].reset();
+        $('#mdWithdraw .modal-alert-danger').removeClass('show').addClass('hide');
+    });
+
+    function getDateTime() {
+        let today = new Date();
+        let date = today.getFullYear() + '-' + (today.getMonth() + 1) + '-' + today.getDate();
+        return date;
+    }
+
+    function findById(id) {
+        return $.ajax({
+            type: "GET",
+            url: "http://localhost:8080/api/customers/" + id
+        })
+            .done((data) => {
+                console.log(data);
+                customer = data;
+            })
+            .fail((err) => {
+                alert("Id not found");
+            })
+    }
+
+    $('#frmCreate').validate({
+        // rules: {
+        //     fullName: {
+        //         required: true,
+        //         minlength: 3,
+        //         maxlength: 50
+        //     },
+        //     email: {
+        //         required: true,
+        //         email: true,
+        //         minlength: 10,
+        //         maxlength: 50
+        //     },
+        //     address: {
+        //         required: false,
+        //         minlength: 5,
+        //         maxlength: 50
+        //     }
+        // },
+        // messages: {
+        //     fullName: {
+        //         required: "Vui lòng nhập tên đầy đủ",
+        //         minlength: $.validator.format("Họ tên tối thiểu {0} ký tự"),
+        //         maxlength: $.validator.format("Họ tên tối đa {0} ký tự")
+        //     },
+        //     email: {
+        //         required: "Vui lòng nhập email đầy đủ",
+        //         email: "Vui lòng nhập đúng định dạng email",
+        //         minlength: $.validator.format("Email tối thiểu {0} ký tự"),
+        //         maxlength: $.validator.format("Email tối đa {0} ký tự")
+        //     },
+        //     address: {
+        //         minlength: $.validator.format("Địa chỉ tối thiểu {0} ký tự"),
+        //         maxlength: $.validator.format("Địa chỉ tối đa {0} ký tự")
+        //     }
+        // },
+        // errorLabelContainer: "#mdCreate .modal-alert-danger",
+        // errorPlacement: function (error, element) {
+        //     error.appendTo("#mdCreate .modal-alert-danger");
+        // },
+        // showErrors: function(errorMap, errorList) {
+        //     if (this.numberOfInvalids() > 0) {
+        //         $("#mdCreate .modal-alert-danger").removeClass("hide").addClass("show");
+        //     } else {
+        //         $("#mdCreate .modal-alert-danger").removeClass("show").addClass("hide").empty();
+        //         $("#frmCreate input.error").removeClass("error");
+        //     }
+        //     this.defaultShowErrors();
+        // },
+        submitHandler: function() {
+            doCreate();
+        }
+    });
+
+    $('#frmEdit').validate({
+        // rules: {
+        //     fullName: {
+        //         required: true,
+        //         minlength: 3,
+        //         maxlength: 50
+        //     },
+        //     email: {
+        //         required: true,
+        //         email: true,
+        //         minlength: 10,
+        //         maxlength: 50
+        //     },
+        //     address: {
+        //         required: false,
+        //         minlength: 5,
+        //         maxlength: 50
+        //     }
+        // },
+        // messages: {
+        //     fullName: {
+        //         required: "Vui lòng nhập tên đầy đủ",
+        //         minlength: $.validator.format("Họ tên tối thiểu {0} ký tự"),
+        //         maxlength: $.validator.format("Họ tên tối đa {0} ký tự")
+        //     },
+        //     email: {
+        //         required: "Vui lòng nhập email đầy đủ",
+        //         email: "Vui lòng nhập đúng định dạng email",
+        //         minlength: $.validator.format("Email tối thiểu {0} ký tự"),
+        //         maxlength: $.validator.format("Email tối đa {0} ký tự")
+        //     },
+        //     address: {
+        //         minlength: $.validator.format("Địa chỉ tối thiểu {0} ký tự"),
+        //         maxlength: $.validator.format("Địa chỉ tối đa {0} ký tự")
+        //     }
+        // },
+        // errorLabelContainer: "#mdEdit .modal-alert-danger",
+        // errorPlacement: function (error, element) {
+        //     error.appendTo("#mdEdit .modal-alert-danger");
+        // },
+        // showErrors: function(errorMap, errorList) {
+        //     if (this.numberOfInvalids() > 0) {
+        //         $("#mdEdit .modal-alert-danger").removeClass("hide").addClass("show");
+        //     } else {
+        //         $("#mdEdit .modal-alert-danger").removeClass("show").addClass("hide").empty();
+        //         $("#frmEdit input.error").removeClass("error");
+        //     }
+        //     this.defaultShowErrors();
+        // },
+        submitHandler: function() {
+            doEdit();
+        }
+    })
+
+    $('#frmDeposit').validate({
+        // rules: {
+        //     transactionAmountDep: {
+        //         required: true,
+        //         number: true,
+        //         min: 50,
+        //         max: 100000
+        //     }
+        // },
+        // messages: {
+        //     transactionAmountDep: {
+        //         required: "Vui lòng nhập số tiền giao dịch",
+        //         min: $.validator.format("Số tiền giao dịch tối thiểu {0} $"),
+        //         max: $.validator.format("Số tiền giao dịch tối đa {0} $"),
+        //         number: "Vui lòng nhập số"
+        //     }
+        // },
+        // errorLabelContainer: "#mdDeposit .modal-alert-danger",
+        // errorPlacement: function (error, element) {
+        //     error.appendTo("#mdDeposit .modal-alert-danger");
+        // },
+        // showErrors: function(errorMap, errorList) {
+        //     if (this.numberOfInvalids() > 0) {
+        //         $("#mdDeposit .modal-alert-danger").removeClass("hide").addClass("show");
+        //     } else {
+        //         $("#mdDeposit .modal-alert-danger").removeClass("show").addClass("hide").empty();
+        //         $("#frmDeposit input.error").removeClass("error");
+        //     }
+        //     this.defaultShowErrors();
+        // },
+        submitHandler: function() {
+            doDeposit();
+        }
+    });
+
+
+    $('#frmWithdraw').validate({
+
+        // rules: {
+        //     fullName: {
+        //         required: true,
+        //         minlength: 3,
+        //         maxlength: 50
+        //     },
+        //     email: {
+        //         required: true,
+        //         email: true,
+        //         minlength: 10,
+        //         maxlength: 50
+        //     },
+        //     address: {
+        //         required: false,
+        //         minlength: 5,
+        //         maxlength: 50
+        //     }
+        // },
+        // messages: {
+        //     fullName: {
+        //         required: "Vui lòng nhập tên đầy đủ",
+        //         minlength: $.validator.format("Họ tên tối thiểu {0} ký tự"),
+        //         maxlength: $.validator.format("Họ tên tối đa {0} ký tự")
+        //     },
+        //     email: {
+        //         required: "Vui lòng nhập email đầy đủ",
+        //         email: "Vui lòng nhập đúng định dạng email",
+        //         minlength: $.validator.format("Email tối thiểu {0} ký tự"),
+        //         maxlength: $.validator.format("Email tối đa {0} ký tự")
+        //     },
+        //     address: {
+        //         minlength: $.validator.format("Địa chỉ tối thiểu {0} ký tự"),
+        //         maxlength: $.validator.format("Địa chỉ tối đa {0} ký tự")
+        //     }
+        // },
+        // errorLabelContainer: "#mdEdit .modal-alert-danger",
+        // errorPlacement: function (error, element) {
+        //     error.appendTo("#mdEdit .modal-alert-danger");
+        // },
+        // showErrors: function(errorMap, errorList) {
+        //     if (this.numberOfInvalids() > 0) {
+        //         $("#mdEdit .modal-alert-danger").removeClass("hide").addClass("show");
+        //     } else {
+        //         $("#mdEdit .modal-alert-danger").removeClass("show").addClass("hide").empty();
+        //         $("#frmEdit input.error").removeClass("error");
+        //     }
+        //     this.defaultShowErrors();
+        // },
+        submitHandler: function() {
+            console.log("1234567");
+            doWithdraw();
+        }
+    })
+
+
+    $('#frmTransfer').validate({
+        //
+        // rules: {
+        //     fullName: {
+        //         required: true,
+        //         minlength: 3,
+        //         maxlength: 50
+        //     },
+        //     email: {
+        //         required: true,
+        //         email: true,
+        //         minlength: 10,
+        //         maxlength: 50
+        //     },
+        //     address: {
+        //         required: false,
+        //         minlength: 5,
+        //         maxlength: 50
+        //     }
+        // },
+        // messages: {
+        //     fullName: {
+        //         required: "Vui lòng nhập tên đầy đủ",
+        //         minlength: $.validator.format("Họ tên tối thiểu {0} ký tự"),
+        //         maxlength: $.validator.format("Họ tên tối đa {0} ký tự")
+        //     },
+        //     email: {
+        //         required: "Vui lòng nhập email đầy đủ",
+        //         email: "Vui lòng nhập đúng định dạng email",
+        //         minlength: $.validator.format("Email tối thiểu {0} ký tự"),
+        //         maxlength: $.validator.format("Email tối đa {0} ký tự")
+        //     },
+        //     address: {
+        //         minlength: $.validator.format("Địa chỉ tối thiểu {0} ký tự"),
+        //         maxlength: $.validator.format("Địa chỉ tối đa {0} ký tự")
+        //     }
+        // },
+        // errorLabelContainer: "#mdEdit .modal-alert-danger",
+        // errorPlacement: function (error, element) {
+        //     error.appendTo("#mdEdit .modal-alert-danger");
+        // },
+        // showErrors: function(errorMap, errorList) {
+        //     if (this.numberOfInvalids() > 0) {
+        //         $("#mdEdit .modal-alert-danger").removeClass("hide").addClass("show");
+        //     } else {
+        //         $("#mdEdit .modal-alert-danger").removeClass("show").addClass("hide").empty();
+        //         $("#frmEdit input.error").removeClass("error");
+        //     }
+        //     this.defaultShowErrors();
+        // },
+        submitHandler: function() {
+            doTransfer();
+        }
+    })
+
+    function calTransactionAmount() {
+        $("#transferAmountTrf").on("input", function () {
+            let transactionAmount = $("#transferAmountTrf").val();
+            $("#transactionAmountTrf").val(Math.ceil(transactionAmount * 1.1));
+        })
+    }
+
+    loadCustomers();
+</script>
+</body>
+
+</html>
