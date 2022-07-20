@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en" >
+    <head>
+        <meta charset="UTF-8">
+        <title>CodePen - Animated Form</title>
+        <head>
+            <meta charset="UTF-8">
+            <title>AnimaForm</title>
+            <th:block th:replace="/layout/head :: head"/>
+            <link href='https://fonts.googleapis.com/css?family=Roboto' rel='stylesheet' type='text/css'>
+        </head><link rel="stylesheet" href="/assets/css/login.css">
+
+    </head>
+    <body>
+    <!-- partial:index.partial.html -->
+        <section class="forms-section">
+            <h1 class="section-title">Animated Forms</h1>
+            <div class="forms">
+                <div class="form-wrapper is-active">
+                    <button type="button" class="switcher switcher-login">
+                        Login
+                        <span class="underline"></span>
+                    </button>
+                    <form class="form form-login">
+                        <fieldset>
+                            <legend>Please, enter your email and password for login.</legend>
+                            <div class="input-block">
+                                <label for="name">E-mail</label>
+                                <input id="name" type="email" required>
+                            </div>
+                            <div class="input-block">
+                                <label for="pass">Password</label>
+                                <input id="pass" type="password" required>
+                            </div>
+                        </fieldset>
+                        <input type="button" id="btnLogin" class="btn-login" value="Login"></input>
+                    </form>
+                </div>
+                <div class="form-wrapper">
+                    <button type="button" class="switcher switcher-signup">
+                        Sign Up
+                        <span class="underline"></span>
+                    </button>
+                    <form class="form form-signup">
+                        <fieldset>
+                            <legend>Please, enter your email, password and password confirmation for sign up.</legend>
+                            <div class="input-block">
+                                <label for="role">Role</label>
+                                <input id="role" type="text" required>
+                            </div>
+                            <div class="input-block">
+                                <label for="regname">E-mail</label>
+                                <input id="regname" type="email" required>
+                            </div>
+                            <div class="input-block">
+                                <label for="regpass">Password</label>
+                                <input id="regpass" type="password" required>
+                            </div>
+<!--                            <div class="input-block">-->
+<!--                                <label for="signup-password-confirm">Confirm password</label>-->
+<!--                                <input id="signup-password-confirm" type="password" required>-->
+<!--                            </div>-->
+                        </fieldset>
+                        <input type="button" id="btnRegister" class="btn-signup" value="Continue"/>
+                    </form>
+                </div>
+            </div>
+        </section>
+    <!-- partial -->
+
+    <th:block th:replace="/layout/script :: script"/>
+    <script>
+        const switchers = [...document.querySelectorAll('.switcher')]
+
+        switchers.forEach(item => {
+            item.addEventListener('click', function() {
+                switchers.forEach(item => item.parentElement.classList.remove('is-active'))
+                this.parentElement.classList.add('is-active')
+            })
+        })
+
+        $("#btnRegister").on("click", () => {
+            let user = {
+                username: $("#regname").val(),
+                password: $("#regpass").val(),
+                role: {
+                    id: $("#role").val()
+                }
+            }
+            console.log(user);
+
+            $.ajax({
+                "headers": {
+                    "accept": "application/json",
+                    "content-type": "application/json"
+                },
+                "type": "POST",
+                "url": "http://localhost:8080/api/auth/register",
+                "data": JSON.stringify(user)
+            })
+                .done(() => {
+                    // console.log("adsđ");
+                    App.SweetAlert.showSuccessAlert("Đăng ký thành công!");
+                    setTimeout(() => {
+                        $(".switcher-login").click();
+                    }, 2000);
+                })
+                .fail((jqXHR) => {
+                    console.log(jqXHR)
+                    alert("Register fail");
+                })
+        });
+
+        $("#btnLogin").on("click", () => {
+            let user = {
+                username: $("#name").val(),
+                password: $("#pass").val()
+            }
+
+            $.ajax({
+                "headers": {
+                    "accept": "application/json",
+                    "content-type": "application/json"
+                },
+                "type": "POST",
+                "url": "http://localhost:8080/api/auth/login",
+                "data": JSON.stringify(user)
+            })
+                .done(() => {
+                    App.SweetAlert.showSuccessAlert('Đăng nhập thành công');
+                    setTimeout(() => {
+                        location.href = "/customers";
+                    }, 2000);
+
+                })
+                .fail((jqXHR) => {
+                    App.SweetAlert.showErrorAlert('Email hoặc mật khẩu không đúng!');
+                })
+        });
+
+    </script>
+
+</body>
+</html>
